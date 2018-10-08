@@ -3,6 +3,8 @@
 const _ = require('lodash')
 const path = require('path')
 
+const sentry = require('../sentry')
+
 /*::
 import type fs from 'fs'
 import type { Metadata } from '../metadata'
@@ -283,7 +285,9 @@ function InvalidLocalMoveEvent (moveChange /*: LocalMove */, event /*: LocalMove
 
 const ensureValidMoveEvent = (moveChange /*: LocalMove */, event /*: LocalMoveEvent */) => {
   /* istanbul ignore next */
-  if (!moveChange.wip) throw new InvalidLocalMoveEvent(moveChange, event)
+  if (!moveChange.wip) {
+    throw sentry.flag(new InvalidLocalMoveEvent(moveChange, event))
+  }
 }
 
 function includeAddEventInFileMove (moveChange /*: LocalFileMove */, e /*: LocalFileAdded */) {
