@@ -173,11 +173,20 @@ const captureScenario = async (scenario /*: * */) => {
   await runActions(scenario, cozyHelpers.cozy)
 
   // Capture
-  const {docs} = await await remoteCozy.changes(last_seq)
-  const json = JSON.stringify(docs, null, 2)
+  const { docs } = await remoteCozy.changes(last_seq)
+  const remoteIds = docs.reduce((ids, doc) => ids.add(doc._id), new Set())
+  const olds = await pouch.allByRemoteIds(remoteIds)
+  const oldsByRemoteId = _.keyBy(olds, 'remote._id')
+  for (let doc of docs) {
+    const old = oldsByRemoteId[doc._id]
+    if (old) {
+      doc._id = {byPath: old.path}
+      doc._rev = {add: metadata.extractRevNumber(doc) - metadata.extractRevNumber(old)}
+    }
+  }
   const changesFile = scenario.path
     .replace(/scenario\.js/, path.join('remote', 'changes.json'))
-  await fs.outputFile(changesFile, json)
+  await fs.outputFile(changesFile, JSON.stringify(docs, null, 2))
 
   return path.basename(changesFile)
 }
