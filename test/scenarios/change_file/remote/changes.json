@@ -1,19 +1,23 @@
 [
   {
-    "_id": "0b92f45b12ad022ee57423c4ba353844",
-    "_rev": "2-c3189fb234ea620a8af8e1e0ecc21fc2",
+    "_id": {
+      "byPath": "/file"
+    },
+    "_rev": {
+      "add": 2
+    },
     "class": "text",
-    "created_at": "2017-10-17T16:30:12.352724784Z",
+    "created_at": "2018-10-09T15:56:23.462292025Z",
     "dir_id": "io.cozy.files.root-dir",
     "executable": false,
-    "md5sum": "NxGkZ67whmFPwEcY5TH2fg==",
+    "md5sum": "Q/WWMViUFfPnuS1PC5n9uQ==",
     "mime": "text/plain",
     "name": "file",
-    "size": "13",
+    "size": "25",
     "tags": [],
     "trashed": false,
     "type": "file",
-    "updated_at": "2017-10-17T16:30:13.370498196Z",
+    "updated_at": "2018-10-09T15:56:23.831486906Z",
     "path": "/file"
   }
 ]
