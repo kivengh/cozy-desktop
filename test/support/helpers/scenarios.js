@@ -78,11 +78,10 @@ module.exports.loadFSEventFiles = (scenario) => {
 }
 
 module.exports.loadRemoteChangesFiles = (scenario) => {
-  const pattern = path.join(path.dirname(scenario.path), 'remote', '*.json*')
-
-  return glob.sync(pattern).map(f => {
+  const remoteChangesFiles = glob.sync(path.join(path.dirname(scenario.path), 'remote', '*.json*'))
+  return remoteChangesFiles.map(f => {
     const name = path.basename(f)
-    const disabled = scenario.disabled || f.endsWith(disabledExtension)
+    const disabled = scenario.disabled || name.endsWith(disabledExtension)
     const changes = fs.readJsonSync(f)
     return {name, disabled, changes}
   })
