@@ -7,7 +7,13 @@ const _ = require('lodash')
 const path = require('path')
 const should = require('should')
 
-const { scenarios, loadFSEventFiles, runActions, init } = require('../support/helpers/scenarios')
+const {
+  scenarios,
+  loadFSEventFiles,
+  loadRemoteChangesFiles,
+  runActions,
+  init
+} = require('../support/helpers/scenarios')
 const configHelpers = require('../support/helpers/config')
 const cozyHelpers = require('../support/helpers/cozy')
 const { IntegrationTestHelpers } = require('../support/helpers/integration')
@@ -143,37 +149,46 @@ describe('Test scenarios', function () {
     if (scenario.name.indexOf('outside') !== -1) {
       it.skip(`${remoteTestName}  (skip outside case)`, () => {})
       continue
-    } else if (scenario.disabled) {
-      it.skip(`${remoteTestName}  (${scenario.disabled})`, () => {})
-      continue
-    } else if (scenario.side === 'local') {
-      it.skip(`${remoteTestName}  (skip local only test)`, () => {})
-      continue
     }
 
-    it(remoteTestName, async function () {
-      if (scenario.init) {
-        let relpathFix = _.identity
-        if (process.platform === 'win32') {
-          relpathFix = (relpath) => relpath.replace(/\//g, '\\')
+    const captures = loadRemoteChangesFiles(scenario)
+    for (let capture of captures) {
+      const remoteCaptureTestName = `${remoteTestName}${capture.name}`
+
+      if (scenario.disabled) {
+        it.skip(`${remoteTestName}  (${scenario.disabled})`, () => {})
+        continue
+      } else if (scenario.side === 'local') {
+        it.skip(`${remoteTestName}  (skip local only test)`, () => {})
+        continue
+      }
+
+      it(remoteCaptureTestName, async function () {
+        console.log({scenario, captures})
+
+        if (scenario.init) {
+          let relpathFix = _.identity
+          if (process.platform === 'win32') {
+            relpathFix = (relpath) => relpath.replace(/\//g, '\\')
+          }
+          await init(scenario, this.pouch, helpers.local.syncDir.abspath, relpathFix)
+          await helpers.remote.ignorePreviousChanges()
         }
-        await init(scenario, this.pouch, helpers.local.syncDir.abspath, relpathFix)
-        await helpers.remote.ignorePreviousChanges()
-      }
 
-      await remoteCaptureHelpers.runActions(scenario, cozyHelpers.cozy)
+        await remoteCaptureHelpers.runActions(scenario, cozyHelpers.cozy)
 
-      // TODO: Don't actually merge when scenario has only Prep assertions?
-      await helpers.remote.pullChanges()
-      // TODO: Don't sync when scenario doesn't have target FS/trash assertions?
-      for (let i = 0; i < scenario.actions.length + 1; i++) {
-        await helpers.syncAll()
-      }
+        // TODO: Don't actually merge when scenario has only Prep assertions?
+        await helpers.remote.simulateChanges(capture.changes)
+        // TODO: Don't sync when scenario doesn't have target FS/trash assertions?
+        for (let i = 0; i < scenario.actions.length + 1; i++) {
+          await helpers.syncAll()
+        }
 
-      await verifyExpectations(scenario, {includeRemoteTrash: false})
+        await verifyExpectations(scenario, {includeRemoteTrash: false})
 
-      // TODO: Local trash assertions
-    }) // describe remote
+        // TODO: Local trash assertions
+      }) // describe remote
+    }
   } // scenarios
 })
 
