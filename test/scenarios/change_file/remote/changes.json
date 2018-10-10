@@ -4,7 +4,7 @@
       "byPath": "/file"
     },
     "_rev": {
-      "add": 2
+      "increment": 2
     },
     "class": "text",
     "created_at": "2018-10-09T15:56:23.462292025Z",
