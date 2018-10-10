@@ -7,6 +7,9 @@ const _ = require('lodash')
 const path = require('path')
 const should = require('should')
 
+const metadata = require('../../core/metadata')
+
+const dbBuilders = require('../support/builders/db')
 const {
   scenarios,
   loadFSEventFiles,
@@ -176,6 +179,31 @@ describe('Test scenarios', function () {
         }
 
         await remoteCaptureHelpers.runActions(scenario, cozyHelpers.cozy)
+
+        // FIXME: Extract function
+        console.log({changes: capture.changes})
+        for (let change of capture.changes) {
+          const old = change._id.byPath
+            ? await this.pouch.byIdMaybeAsync(metadata.id(change._id.byPath))
+            : null
+          console.log({
+            path: change._id.byPath,
+            id: metadata.id(change._id.byPath),
+            old
+          })
+
+          if (old) {
+            const remoteInfos = {
+              _id: old.remote._id,
+              _rev: dbBuilders.rev(
+                metadata.extractRevNumber(old) + change._rev.increment
+              )
+            }
+            // FIXME: Do not mutate, map instead
+            _.assign(change, remoteInfos)
+            console.log({change})
+          }
+        }
 
         // TODO: Don't actually merge when scenario has only Prep assertions?
         await helpers.remote.simulateChanges(capture.changes)
