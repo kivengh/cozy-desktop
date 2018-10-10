@@ -18,11 +18,11 @@ const createInitialTree = async function (scenario /*: * */, cozy /*: * */, pouc
   if (!scenario.init) return
   debug('[init]')
   for (let initialItem of scenario.init) {
-    let relpath = '/' + initialItem.path
+    const relpath = _.trimEnd(initialItem.path, '/')
+    const remotePath = '/' + relpath
     if (initialItem.path.endsWith('/')) {
-      relpath = _.trimEnd(relpath, '/') // XXX: Check in metadata.id?
       debug('- mkdir', initialItem.path)
-      const remoteDir = await cozy.files.createDirectoryByPath(relpath)
+      const remoteDir = await cozy.files.createDirectoryByPath(remotePath)
       await pouch.db.put({
         _id: metadata.id(relpath),
         docType: 'folder',
@@ -35,10 +35,10 @@ const createInitialTree = async function (scenario /*: * */, cozy /*: * */, pouc
       })
     } else {
       debug('- >', initialItem.path)
-      const parent = await cozy.files.statByPath(path.posix.dirname(relpath))
+      const parent = await cozy.files.statByPath(path.posix.dirname(remotePath))
       let remoteFile = await cozy.files.create(Buffer.from(''), {
         dirID: parent._id,
-        name: path.basename(relpath)
+        name: path.basename(remotePath)
       })
       await pouch.db.put({
         _id: metadata.id(relpath),
