@@ -17,8 +17,8 @@ const debug = process.env.DEBUG != null ? console.log : (...args) => {}
 const createInitialTree = async function (scenario /*: * */, cozy /*: * */, pouch /*: Pouch */) {
   if (!scenario.init) return
   debug('[init]')
-  for (let doc of scenario.init) {
-    let relpath = '/' + doc.path
+  for (let initialItem of scenario.init) {
+    let relpath = '/' + initialItem.path
     if (relpath.endsWith('/')) {
       relpath = _.trimEnd(relpath, '/') // XXX: Check in metadata.id?
       debug('- mkdir', relpath)
@@ -28,7 +28,7 @@ const createInitialTree = async function (scenario /*: * */, cozy /*: * */, pouc
         docType: 'folder',
         updated_at: new Date(),
         path: relpath,
-        ino: doc.ino,
+        ino: initialItem.ino,
         tags: [],
         sides: {local: 1, remote: 1},
         remote: {_id: remoteDir._id, _rev: remoteDir._rev}
@@ -49,7 +49,7 @@ const createInitialTree = async function (scenario /*: * */, cozy /*: * */, pouc
         updated_at: new Date(),
         mime: 'text/plain',
         path: relpath,
-        ino: doc.ino,
+        ino: initialItem.ino,
         size: 0,
         tags: [],
         sides: {local: 1, remote: 1},
