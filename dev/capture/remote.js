@@ -180,8 +180,11 @@ const captureScenario = async (scenario /*: * */) => {
   for (let doc of docs) {
     const old = oldsByRemoteId[doc._id]
     if (old) {
-      doc._id = {byPath: old.path}
-      doc._rev = {add: metadata.extractRevNumber(doc) - metadata.extractRevNumber(old)}
+      const revIncrement = metadata.extractRevNumber(doc) - metadata.extractRevNumber(old)
+      _.assign(doc, {
+        _id: {byPath: old.path},
+        _rev: {increment: revIncrement}
+      })
     }
   }
   const changesFile = scenario.path
