@@ -183,14 +183,17 @@ describe('Test scenarios', function () {
         // FIXME: Extract function
         console.log({changes: capture.changes})
         for (let change of capture.changes) {
+          const id = metadata.id((() => {
+            // FIXME: Path normalization pure function
+            // FIXME: Path should not be the remote one anyway (capture bug)
+            const doc = {path: change._id.byPath}
+            metadata.ensureValidPath(doc)
+            return doc.path
+          })())
           const old = change._id.byPath
-            ? await this.pouch.byIdMaybeAsync(metadata.id(change._id.byPath))
+            ? await this.pouch.byIdMaybeAsync(id)
             : null
-          console.log({
-            path: change._id.byPath,
-            id: metadata.id(change._id.byPath),
-            old
-          })
+          console.log({path: change._id.byPath, id, old})
 
           if (old) {
             const remoteInfos = {
