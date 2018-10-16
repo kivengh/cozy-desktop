@@ -187,6 +187,8 @@ function invariants (doc /*: Metadata */) {
     err = new Error(`${doc._id} has 'sides.remote' but no remote`)
   } else if (doc.docType === 'file' && doc.md5sum == null) {
     err = new Error(`${doc._id} is a file without checksum`)
+  } else if (doc._id !== id(doc.path)) {
+    err = new Error(`${doc._id} id does not match path ${doc.path}`)
   }
 
   if (err) {
