@@ -225,7 +225,7 @@ class App {
       this.uploadFileToSupport(incidentID, 'logs.gz', logs.pipe(zipper)),
       this.uploadFileToSupport(incidentID, 'pouchdtree.json', JSON.stringify(pouchdbTree))
     ]).catch((err) => {
-      log.error({err}, 'FAILED TO SEND LOGS')
+      log.error({sentry: true, err}, 'FAILED TO SEND LOGS')
     })
 
     content = content + '\r\n\r\n-------- debug info --------\r\n' +
