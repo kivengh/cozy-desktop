@@ -5,20 +5,46 @@ clone_depth: 10
 environment:
   MOCHA_TIMEOUT: "60000"
   NO_BREAKPOINTS: "1"
+  COZY_DESKTOP_HEARTBEAT: "1000"
+  NODE_ENV: "test"
+  COZY_DESKTOP_DIR: "%USERPROFILE%\\cozy-desktop"
+  COZY_URL: "http://localhost:8080"
+  COZY_PASSPHRASE: "cozy"
+  COZY_STACK_STORAGE: "%USERPROFILE%\\storage"
+
+init:
+  # Good practise, because Windows
+  - cmd: git config --global core.autocrlf true
 
 install:
-  - cmd: appveyor-retry yarn install:all
-  - cmd: appveyor-retry yarn bootstrap:remote
+  - ps: Get-Variable | Out-String
+  - ps: appveyor-retry docker build . -f .\dev\ci\cozy-couchdb-windows.dockerfile -t cozy/couchdb:2.2.0-windows
+  - ps: appveyor-retry docker run -d -p 5984:5984 --name couch cozy/couchdb:2.2.0-windows
+  - ps: Start-Sleep -s 8
+  - ps: Invoke-RestMethod -Method Put -Uri http://127.0.0.1:5984/_users
+  - ps: Invoke-RestMethod -Method Put -Uri http://127.0.0.1:5984/_replicator
+  - ps: Invoke-RestMethod -Method Put -Uri http://127.0.0.1:5984/_global_changes
+  - ps: appveyor-retry go get -u github.com/cozy/cozy-stack
+  - ps: New-Item -ItemType directory -Path $env:COZY_STACK_STORAGE
+  - ps: start -NoNewWindow "$env:GOPATH\\bin\\cozy-stack" -ArgumentList 'serve --fs-url `"file://$env:COZY_STACK_STORAGE"` --log-level warning' | Out-Null
+  - ps: Start-Sleep -s 1
+  - ps: \& "$env:GOPATH\\bin\\cozy-stack" instances add --dev --passphrase $env:COZY_PASSPHRASE localhost:8080
+  - ps: Set-Variable -Name "COZY_CLIENT_ID" -Value (& "$env:GOPATH\\bin\\cozy-stack" instances client-oauth localhost:8080 http://localhost/ test github.com/cozy-labs/cozy-desktop)
+  - ps: Set-Variable -Name "COZY_STACK_TOKEN" -Value (& "$env:GOPATH\\bin\\cozy-stack" instances token-oauth localhost:8080 $env:COZY_CLIENT_ID io.cozy.files io.cozy.settings)
+  - ps: New-Item -ItemType directory -Path $env:COZY_DESKTOP_DIR
+  - ps: Set-Content -Path "$env:APPVEYOR_BUILD_FOLDER\\.env.test" -Value "NODE_ENV=test"
+  - ps: appveyor-retry yarn install:all
+  - ps: appveyor-retry yarn bootstrap:remote
 
 build: off
 
 test_script:
   - yarn build
-  - cmd: yarn test:elm
-  - cmd: yarn test:world --timeout $env:MOCHA_TIMEOUT
-  - cmd: yarn test:unit --timeout $env:MOCHA_TIMEOUT
-  - cmd: yarn test:integration --timeout $env:MOCHA_TIMEOUT
-  - cmd: yarn test:scenarios --timeout $env:MOCHA_TIMEOUT
+  - ps: yarn test:elm
+  - ps: yarn test:world --timeout $env:MOCHA_TIMEOUT
+  - ps: yarn test:unit --timeout $env:MOCHA_TIMEOUT
+  - ps: yarn test:integration --timeout $env:MOCHA_TIMEOUT
+  - ps: yarn test:scenarios --timeout $env:MOCHA_TIMEOUT
   - yarn dist:all
 
 on_failure:
