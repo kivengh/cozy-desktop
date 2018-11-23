@@ -26,7 +26,10 @@ const { otherSide } = require('./side')
 const fsutils = require('./utils/fs')
 
 /*::
-import type { IdConflictInfo } from './Conflict'
+import type {
+  DocTypeConflict,
+  IdConflictInfo
+} from './Conflict'
 import type Local from './local'
 import type { SideName, Metadata, RemoteRevisionsByID } from './metadata'
 import type Pouch from './pouch'
@@ -143,7 +146,7 @@ class Merge {
       log.warn({idConflict}, Conflict.description(idConflict))
       await this.resolveConflictAsync(side, doc, file)
       return
-    } else if (file && file.docType === 'folder') {
+    } else if (Conflict.detectOnDocType(side, doc, file)) {
       return this.resolveConflictAsync(side, doc, file)
     }
     assignMaxDate(doc, file)
@@ -208,7 +211,7 @@ class Merge {
     const {path} = doc
     const file /*: ?Metadata */ = await this.pouch.byIdMaybeAsync(doc._id)
     markSide(side, doc, file)
-    if (file && file.docType === 'folder') {
+    if (Conflict.detectOnDocType(side, doc, file)) {
       throw new Error("Can't resolve this conflict!")
     }
     assignMaxDate(doc, file)
@@ -251,7 +254,7 @@ class Merge {
     const {path} = doc
     const folder /*: ?Metadata */ = await this.pouch.byIdMaybeAsync(doc._id)
     markSide(side, doc, folder)
-    if (folder && folder.docType === 'file') {
+    if (Conflict.detectOnDocType(side, doc, folder)) {
       return this.resolveConflictAsync(side, doc, folder)
     }
     assignMaxDate(doc, folder)
@@ -424,7 +427,7 @@ class Merge {
       log.debug({path}, 'Nothing to trash')
       return
     }
-    if (doc.docType !== oldMetadata.docType) {
+    if (Conflict.detectOnDocType(side, doc, oldMetadata)) {
       log.error({doc, oldMetadata, sentry: true}, 'Mismatch on doctype for doTrash')
       return
     }

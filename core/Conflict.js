@@ -16,6 +16,13 @@ const metadata = require('./metadata')
 /*::
 import type { Metadata, SideName } from './metadata'
 
+export opaque type DocTypeConflict = {
+  conflictKind: 'DocTypeConflict',
+  existingDoc: Metadata,
+  newDoc: Metadata,
+  sideName: SideName
+}
+
 export opaque type IdConflictInfo = {
   existingDoc: Metadata,
   newDoc: Metadata,
@@ -26,6 +33,7 @@ export opaque type IdConflictInfo = {
 
 module.exports = {
   description,
+  detectOnDocType,
   detectOnIdentity
 }
 
@@ -67,6 +75,19 @@ function detectOnIdentity (sideName /*: SideName */, newDoc /*: Metadata */, exi
       existingDoc,
       newDoc,
       platform,
+      sideName
+    }
+  }
+}
+
+function detectOnDocType (sideName /*: SideName */, newDoc /*: Metadata */, existingDoc /*: ?Metadata */) /*: ?DocTypeConflict */ {
+  if (!existingDoc) return // Exit early to make flow happy
+
+  if (newDoc.docType !== existingDoc.docType) {
+    return {
+      conflictKind: 'DocTypeConflict',
+      existingDoc,
+      newDoc,
       sideName
     }
   }
