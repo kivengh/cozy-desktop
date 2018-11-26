@@ -193,7 +193,9 @@ class Merge {
           log.debug({path}, 'The file was only updated on remote. Nothing to do.')
           return null
         }
-      } catch (_) {}
+      } catch (err) {
+        if (err.status !== 404) throw err
+      }
       log.debug({path}, 'The file was updated both on remote and on local')
       if (doc.remote == null) { doc.remote = file.remote }
       return this.resolveConflictAsync('remote', doc, file)
