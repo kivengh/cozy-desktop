@@ -154,6 +154,7 @@ describe('Merge', function () {
     it('does nothing for an already merged file (aka idempotence)', async function () {
       const mergedFile = await builders.file().path('already-merged-file').sides({remote: 1}).create()
       const doc = builders.file(mergedFile).unmerged('remote').build()
+      doc.tags = mergedFile.tags // FIXME
 
       sinon.spy(this.pouch, 'put')
       await this.merge.addFileAsync('remote', _.cloneDeep(doc))
