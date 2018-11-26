@@ -151,6 +151,52 @@ describe('Merge', function () {
       })
     })
 
+    it('does nothing for an already merged file (aka idempotence)', async function () {
+      const mergedFile = await builders.file().path('already-merged-file').sides({remote: 1}).create()
+      const doc = builders.file(mergedFile).unmerged('remote').build()
+
+      sinon.spy(this.pouch, 'put')
+      await this.merge.addFileAsync('remote', _.cloneDeep(doc))
+
+      should(mergeSideEffects(this)).deepEqual({
+        savedDocs: [],
+        resolvedConflicts: []
+      })
+    })
+
+    it('resolves a conflict on remote file addition with unsynced local file addition', async function () {
+      const unsyncedLocalFile = await builders.file().path('thefile').sides({local: 1}).noRemote().data('local content').create()
+      const newRemoteFile = builders.file().path(unsyncedLocalFile.path).unmerged('remote').data('remote content').build()
+
+      sinon.spy(this.pouch, 'put')
+      await this.merge.addFileAsync('remote', _.cloneDeep(newRemoteFile))
+
+      const props = ['path', 'remote']
+      should(mergeSideEffects(this, props)).deepEqual({
+        savedDocs: [],
+        resolvedConflicts: [
+          ['remote', _.pick(newRemoteFile, props), unsyncedLocalFile]
+        ]
+      })
+    })
+
+    it('overrides an unsynced local addition with a local update detected by initial scan', async function () {
+      const unsyncedLocalFile = await builders.file().path('dafile').sides({local: 1}).noRemote().data('initial content').create()
+      const localFileUpdate = await builders.file(unsyncedLocalFile).unmerged('local').data('updated content').build()
+
+      sinon.spy(this.pouch, 'put')
+      await this.merge.addFileAsync('local', _.cloneDeep(localFileUpdate))
+
+      const props = ['path', 'remote']
+      should(mergeSideEffects(this, props)).deepEqual({
+        savedDocs: [{
+          path: localFileUpdate.path,
+          remote: undefined // FIXME: remote should not be set at all
+        }],
+        resolvedConflicts: []
+      })
+    })
+
     it('overrides an unsynced local update with a new one detected by local initial scan', async function () {
       const initialMerge = await builders.file().path('yafile').sides({local: 1}).data('initial content').create()
       const initialSync = await builders.file(initialMerge).sides({local: 2, remote: 2}).create()
@@ -170,6 +216,21 @@ describe('Merge', function () {
             sides: {local: 4, remote: 2}
           }
         ],
+        resolvedConflicts: []
+      })
+    })
+
+    it('does not override unsynced remote update with local initial scan of previous file content', async function () {
+      const initialMerge = await builders.file().path('heyfile').sides({local: 1}).data('previous content').create()
+      const initialSync = await builders.file(initialMerge).sides({local: 2, remote: 2}).create()
+      await builders.file(initialSync).sides({local: 2, remote: 3}).data('remote update').create()
+      const doc = builders.file(initialSync).unmerged('local').build()
+
+      sinon.spy(this.pouch, 'put')
+      await this.merge.addFileAsync('local', _.cloneDeep(doc))
+
+      should(mergeSideEffects(this)).deepEqual({
+        savedDocs: [],
         resolvedConflicts: []
       })
     })
