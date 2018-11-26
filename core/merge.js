@@ -154,7 +154,7 @@ class Merge {
       if (doc.mime == null) { doc.mime = file.mime }
       if (doc.tags == null) { doc.tags = file.tags || [] }
       if (doc.remote == null) { doc.remote = file.remote }
-      if (doc.ino == null) { doc.ino = file.ino }
+      if (doc.ino == null && file.ino) { doc.ino = file.ino }
       if (sameFile(file, doc)) {
         log.info({path}, 'up to date')
         return null
