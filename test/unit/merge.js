@@ -17,6 +17,34 @@ const {
 const pouchHelpers = require('../support/helpers/pouch')
 const MetadataBuilders = require('../support/builders/metadata')
 
+/** Returns an object describing the side-effects of a Merge.
+ *
+ * The returned object has the following properties:
+ *
+ * - `savedDocs`: Which docs were passed to `Pouch#put()`
+ * - `resolvedConflicts`: Which conflits were resolved on which side
+ *
+ * `pouch.put` & `bulkDocs` must be spied manually because of test data
+ * builders. But if spied, they will be restored automatically (see hook
+ * below).
+ * FIXME: `Pouch#bulkDocs()` args are not yet included in `mergeSideEffects()`.
+ *
+ * Accepts a `props` list:
+ *
+ * - `savedDocs` will be replaced with their corresponding `props`.
+ * - `resolvedConflict` 2nd `doc` argument will be replaced with its
+ *    corresponding `props`.
+ */
+function mergeSideEffects ({merge, pouch} /*: * */, props /*:: ?: string[] */) {
+  const pick = props ? _.pick : _.identity
+  return {
+    savedDocs: pouch.put.args.map(([doc]) => pick(doc, props)),
+    resolvedConflicts: merge.resolveConflictAsync.args.map(([side, doc, existing]) =>
+      [side, _.pick(doc, props), existing]
+    )
+  }
+}
+
 describe('Merge', function () {
   let builders
 
@@ -132,11 +160,8 @@ describe('Merge', function () {
       sinon.spy(this.pouch, 'put')
       await this.merge.addFileAsync('local', _.cloneDeep(doc), _.cloneDeep(was))
 
-      const savedDocs = this.pouch.put.args.map(([doc]) =>
-        _.pick(doc, ['md5sum', 'path', 'remote', 'sides'])
-      )
-      const resolveConflictCalls = this.merge.resolveConflictAsync.args
-      should({savedDocs, resolveConflictCalls}).deepEqual({
+      const props = ['md5sum', 'path', 'remote', 'sides']
+      should(mergeSideEffects(this, props)).deepEqual({
         savedDocs: [
           {
             md5sum: doc.md5sum,
@@ -145,7 +170,7 @@ describe('Merge', function () {
             sides: {local: 4, remote: 2}
           }
         ],
-        resolveConflictCalls: []
+        resolvedConflicts: []
       })
     })
   })
