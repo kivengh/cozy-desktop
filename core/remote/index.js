@@ -332,10 +332,10 @@ class Remote /*:: implements Side */ {
   }
 
   // TODO add tests
-  async renameConflictingDocAsync (doc /*: Metadata */, newPath /*: string */) /*: Promise<void> */ {
+  async renameConflictingDocAsync (doc /*: Metadata */, oldPath /*: string */) /*: Promise<void> */ {
     const {path} = doc
-    log.info({path}, `Resolve a conflict: ${path} → ${newPath}`)
-    const newName = dirAndName(newPath)[1]
+    log.info({path}, `Resolve a conflict: ${oldPath} → ${path}`)
+    const newName = dirAndName(path)[1]
     await this.remoteCozy.updateAttributesById(doc.remote._id, {
       name: newName
     })

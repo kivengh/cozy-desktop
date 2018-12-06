@@ -743,13 +743,14 @@ describe('remote.Remote', function () {
   describe('renameConflictingDocAsync', () => {
     it('renames the file/folder', async function () {
       const remoteDoc /*: RemoteDoc */ = await builders.remote.file().name('cat9').create()
-      const src /*: Metadata */ = metadata.fromRemoteDoc(remoteDoc)
-      ensureValidPath(src)
-      const newPath = 'cat9-conflict-2015-12-01T01:02:03Z.jpg'
-      await this.remote.renameConflictingDocAsync(src, newPath)
+      const old /*: Metadata */ = metadata.fromRemoteDoc(remoteDoc)
+      const dst /*: Metadata */ = metadataBuilders.file(old)
+        .path('cat9-conflict-2015-12-01T01:02:03Z.jpg')
+        .build()
+      await this.remote.renameConflictingDocAsync(dst, old.path)
       const file /*: JsonApiDoc */ = await cozy.files.statById(remoteDoc._id)
       should(file.attributes).have.properties(_.merge({
-        name: newPath
+        name: dst.path
       }, pick(remoteDoc, ['dir_id', 'type', 'updated_at', 'size', 'md5sum'])))
     })
   })

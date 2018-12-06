@@ -122,7 +122,7 @@ class Merge {
     assignId(dst)
     try {
       // $FlowFixMe
-      await this[side].renameConflictingDocAsync(doc, dst.path)
+      await this[side].renameConflictingDocAsync(dst, doc.path)
     } catch (err) {
       throw err
     }

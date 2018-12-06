@@ -699,15 +699,15 @@ describe('Local', function () {
   describe('renameConflictingDoc', () =>
     it('renames the file', async function () {
       let doc = {
-        path: 'conflict/file',
+        path: 'conflict/file-conflict-2015-10-09T05_05_10Z',
         updated_at: new Date('2015-10-08T05_05_09Z')
       }
-      let newPath = 'conflict/file-conflict-2015-10-09T05_05_10Z'
-      let srcPath = syncDir.abspath(doc.path)
-      let dstPath = syncDir.abspath(newPath)
+      let oldPath = 'conflict/file'
+      let srcPath = syncDir.abspath(oldPath)
+      let dstPath = syncDir.abspath(doc.path)
       fs.ensureDirSync(path.dirname(srcPath))
       fs.writeFileSync(srcPath, 'foobar')
-      await this.local.renameConflictingDocAsync(doc, newPath)
+      await this.local.renameConflictingDocAsync(doc, oldPath)
       fs.existsSync(srcPath).should.be.false()
       fs.statSync(dstPath).isFile().should.be.true()
       let enc = {encoding: 'utf-8'}

@@ -14,7 +14,7 @@ export interface Side {
   assignNewRev (doc: Metadata): Promise<void>;
   trashAsync (doc: Metadata): Promise<void>;
   deleteFolderAsync (doc: Metadata): Promise<void>;
-  renameConflictingDocAsync (doc: Metadata, newPath: string): Promise<void>;
+  renameConflictingDocAsync (doc: Metadata, oldPath: string): Promise<void>;
 }
 */
 
