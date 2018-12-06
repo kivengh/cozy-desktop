@@ -752,6 +752,9 @@ describe('remote.Remote', function () {
       should(file.attributes).have.properties(_.merge({
         name: dst.path
       }, pick(remoteDoc, ['dir_id', 'type', 'updated_at', 'size', 'md5sum'])))
+      should(dst).have.property('remote').with.properties(
+        pick(file, ['_id', '_rev'])
+      )
     })
   })
 })

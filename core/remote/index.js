@@ -336,9 +336,10 @@ class Remote /*:: implements Side */ {
     const {path} = doc
     log.info({path}, `Resolve a conflict: ${oldPath} → ${path}`)
     const newName = dirAndName(path)[1]
-    await this.remoteCozy.updateAttributesById(doc.remote._id, {
+    const updated = await this.remoteCozy.updateAttributesById(doc.remote._id, {
       name: newName
     })
+    doc.remote._rev = updated._rev
   }
 }
 
