@@ -332,6 +332,9 @@ module.exports = class LocalWatcher {
             if (c.update) await this.onChange(c.update.path, c.update.stats, c.update.md5sum)
             break
           case 'DirMove':
+            if (c.needRefetch) {
+              c.old = await this.pouch.db.get(metadata.id(c.old.path))
+            }
             await this.onMoveFolder(c.path, c.stats, c.old, c.overwrite)
             break
           case 'Ignored':

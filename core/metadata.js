@@ -58,6 +58,7 @@ export type Metadata = {
   moveTo?: string, // Destination id
   overwrite?: Metadata,
   childMove?: boolean,
+  needNewRev?: boolean,
   path: string,
   remote: MetadataRemoteInfo,
   size?: number,
