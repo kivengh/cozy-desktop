@@ -1,0 +1,47 @@
+[
+  {
+    "breakpoints": [0]
+  },
+  {
+    "type": "unlinkDir",
+    "path": "parent\\subdir"
+  },
+  {
+    "type": "unlinkDir",
+    "path": "parent"
+  },
+  {
+    "type": "addDir",
+    "path": "parent-2",
+    "stats": {
+      "ino": 1,
+      "size": 0,
+      "mtime": "2018-12-07T07:57:27.502Z",
+      "ctime": "2018-12-07T07:57:30.427Z"
+    }
+  },
+  {
+    "type": "addDir",
+    "path": "parent-2\\subdir",
+    "stats": {
+      "ino": 2,
+      "size": 0,
+      "mtime": "2018-12-07T07:57:27.502Z",
+      "ctime": "2018-12-07T07:57:27.502Z"
+    }
+  },
+  {
+    "type": "unlinkDir",
+    "path": "parent-2\\subdir"
+  },
+  {
+    "type": "addDir",
+    "path": "parent-2\\subdir-2",
+    "stats": {
+      "ino": 2,
+      "size": 0,
+      "mtime": "2018-12-07T07:57:27.502Z",
+      "ctime": "2018-12-07T07:57:31.942Z"
+    }
+  }
+]
