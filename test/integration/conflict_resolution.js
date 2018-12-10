@@ -281,7 +281,7 @@ describe('Conflict resolution', () => {
       await helpers.local.syncDir.move('src', 'dst')
 
       const expectedTree = [
-        // FIXME: Lost remote._id?
+        'dst-conflict-.../',
         'dst/'
       ]
       await afterFullSyncBothTreeDeepEqual(expectedTree)
