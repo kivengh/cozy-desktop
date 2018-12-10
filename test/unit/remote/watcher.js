@@ -269,7 +269,7 @@ describe('RemoteWatcher', function () {
       })
     })
 
-    describe('overwriting move', () => {
+    describe('overwriting file move', () => {
       let srcFileDoc, dstFileDoc, olds, srcFileMoved, dstFileTrashed
 
       beforeEach(() => {
@@ -324,6 +324,65 @@ describe('RemoteWatcher', function () {
         should(relevantChangesProps(changes)).deepEqual([
           {type: 'FileMove', doc: {path: 'dst/file', overwrite: true}, was: {path: 'src/file'}},
           {type: 'IgnoredChange', doc: {path: '.cozy_trash/file'}, was: {path: 'dst/file'}}
+        ])
+      })
+    })
+
+    describe('overwriting dir move', () => {
+      let srcDoc, dstDoc, olds, srcMoved, dstTrashed
+
+      beforeEach(() => {
+        /* Remote tree:
+            /dst/
+            /dst/file
+            /src/
+            /src/file
+        */
+        const srcDir = builders.remote.dir().name('src').build()
+        const dstDir = builders.remote.dir().name('dst').build()
+        const src = builders.remote.dir().name('dir').inDir(srcDir).build()
+        const dst = builders.remote.dir().name('dir').inDir(dstDir).build()
+
+        /* Files were synced */
+        srcDoc = builders.metadata.dir().fromRemote(src).upToDate().build()
+        dstDoc = builders.metadata.dir().fromRemote(dst).upToDate().build()
+        olds = [srcDoc, dstDoc]
+
+        /* Moving /src/dir to /dst/dir (overwriting the destination) */
+        srcMoved = _.defaults({
+          _rev: '2-' + uuid().replace(/-/g, ''),
+          path: dst.path
+        }, src)
+        dstTrashed = _.defaults({
+          _rev: '2-' + uuid().replace(/-/g, ''),
+          dir_id: TRASH_DIR_ID,
+          path: path.posix.join('/', TRASH_DIR_NAME, dstDir.name, dst.name)
+        }, dst)
+      })
+
+      const relevantChangesProps = changes => changes.map(({type, doc, was}) => {
+        const props /*: Object */ = {type, doc: {path: posixifyPath(doc.path)}}
+        if (was) props.was = {path: posixifyPath(was.path)}
+        if (doc.overwrite) props.doc.overwrite = true
+        if (was.overwrite) props.was.overwrite = true
+        return props
+      })
+
+      it('is detected when moved source is first', function () {
+        const remoteDocs = [srcMoved, dstTrashed]
+        const changes = this.watcher.analyse(remoteDocs, olds)
+        should(relevantChangesProps(changes)).deepEqual([
+          {type: 'IgnoredChange', doc: {path: '.cozy_trash/dst/dir'}, was: {path: 'dst/dir'}},
+          {type: 'DirMove', doc: {path: 'dst/dir', overwrite: true}, was: {path: 'src/dir'}}
+        ])
+      })
+
+      it('is detected when trashed destination is first', function () {
+        const remoteDocs = [dstTrashed, srcMoved]
+        const changes = this.watcher.analyse(remoteDocs, olds)
+        should(relevantChangesProps(changes)).deepEqual([
+          {type: 'DirMove', doc: {path: 'dst/dir', overwrite: true}, was: {path: 'src/dir'}},
+          {type: 'IgnoredChange', doc: {path: '.cozy_trash/dst/dir'}, was: {path: 'dst/dir'}}
         ])
       })
     })
