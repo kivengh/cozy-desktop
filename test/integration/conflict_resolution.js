@@ -273,6 +273,8 @@ describe('Conflict resolution', () => {
   describe('merging local dir move then remote dir addition to the same destination', () => {
     it('renames the remote dir', async () => {
       await helpers.local.syncDir.ensureDir('src')
+      await helpers.local.syncDir.ensureDir('src/subdir')
+      await helpers.local.syncDir.outputFile('src/subdir/file', 'Initial content')
       await helpers.local.scan()
       await helpers.syncAll()
       await helpers.pullAndSyncAll()
@@ -282,7 +284,9 @@ describe('Conflict resolution', () => {
 
       const expectedTree = [
         'dst-conflict-.../',
-        'dst/'
+        'dst/',
+        'dst/subdir/',
+        'dst/subdir/file'
       ]
       await afterFullSyncBothTreeDeepEqual(expectedTree)
       await afterFullSyncBothTreeDeepEqual(expectedTree)
