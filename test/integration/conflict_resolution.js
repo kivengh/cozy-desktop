@@ -4,7 +4,7 @@
 const should = require('should')
 const sinon = require('sinon')
 
-const fs = require('fs-extra')
+const fse = require('fs-extra')
 const _ = require('lodash')
 const Builders = require('../support/builders')
 const configHelpers = require('../support/helpers/config')
@@ -104,7 +104,7 @@ describe('Conflict resolution', () => {
       await helpers.local.scan()
       await helpers.syncAll()
 
-      const conflictedPath = (await fs.readdir(helpers.local.syncPath))
+      const conflictedPath = (await fse.readdir(helpers.local.syncPath))
         .filter(x => x.indexOf('-conflict-') !== -1)[0]
 
       await helpers.local.syncDir.remove(conflictedPath)
@@ -123,7 +123,7 @@ describe('Conflict resolution', () => {
       await helpers.local.scan()
       await helpers.syncAll()
 
-      const conflictedPath = (await fs.readdir(helpers.local.syncPath))
+      const conflictedPath = (await fse.readdir(helpers.local.syncPath))
         .filter(x => x.indexOf('-conflict-') !== -1)[0]
 
       const remoteBadFile = await cozy.files.statByPath('/' + conflictedPath)
