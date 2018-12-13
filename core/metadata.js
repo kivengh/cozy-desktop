@@ -245,15 +245,14 @@ function invariants (doc /*: Metadata */) {
 export type PlatformIncompatibility = PathIssue & {docType: string}
 */
 
-// Identifies platform incompatibilities in metadata that will prevent local
+// Identifies platform incompatibilities in doc that will prevent local
 // synchronization
-// TODO: return null instead of an empty array when no issue was found?
-function detectPlatformIncompatibilities (metadata /*: Metadata */, syncPath /*: string */) /*: Array<PlatformIncompatibility> */ {
-  const pathLenghIssue = detectPathLengthIssue(path.join(syncPath, metadata.path), platform)
-  const issues /*: PathIssue[] */ = detectPathIssues(metadata.path, metadata.docType)
+function detectPlatformIncompatibilities (doc /*: Metadata */, syncPath /*: string */) /*: Array<PlatformIncompatibility> */ {
+  const pathLenghIssue = detectPathLengthIssue(path.join(syncPath, doc.path), platform)
+  const issues /*: PathIssue[] */ = detectPathIssues(doc.path, doc.docType)
   if (pathLenghIssue) issues.unshift(pathLenghIssue)
   return issues.map(issue => (_.merge({
-    docType: issue.path === metadata.path ? metadata.docType : 'folder'
+    docType: issue.path === doc.path ? doc.docType : 'folder'
   }, issue)))
 }
 
