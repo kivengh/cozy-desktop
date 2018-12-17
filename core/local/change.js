@@ -162,14 +162,21 @@ function _fromEvent (e/*: LocalEvent */) /*: LocalChange */ {
 
 function fileMoveFromUnlinkAdd (unlinkChange /*: LocalFileDeletion */, e /*: LocalFileAdded */) /*: * */ {
   if (_.get(unlinkChange, 'old.path') === e.path) return fromEvent(e)
-  log.debug({oldpath: unlinkChange.path, path: e.path, ino: unlinkChange.ino}, 'unlink + add = FileMove')
-  return build('FileMove', e.path, {
+  const fileMove = build('FileMove', e.path, {
     stats: e.stats,
     md5sum: e.md5sum,
     old: unlinkChange.old,
     ino: unlinkChange.ino,
     wip: e.wip
   })
+  if (e.md5sum !== unlinkChange.old.md5sum) {
+    fileMove.update = e
+  }
+  log.debug(
+    {oldpath: unlinkChange.path, path: e.path, ino: unlinkChange.ino},
+    `unlink + add = FileMove${fileMove.update ? '(update)' : ''}`
+  )
+  return fileMove
 }
 
 function dirMoveFromUnlinkAdd (unlinkChange /*: LocalDirDeletion */, e /*: LocalDirAdded */) /*: * */ {
