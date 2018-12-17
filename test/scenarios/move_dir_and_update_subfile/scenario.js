@@ -7,12 +7,12 @@ module.exports = ({
   side: 'remote',
   init: [
     {ino: 1, path: 'src/'},
-    {ino: 2, path: 'src/file'}
+    {ino: 2, path: 'src/file'} // default content 'foo'
   ],
   actions: [
     {type: 'mv', src: 'src', dst: 'dst'},
     {type: 'wait', ms: 1500},
-    {type: '>>', path: 'dst/file'}
+    {type: '>>', path: 'dst/file'} // adds ' blah'
   ],
   expected: {
     tree: [
