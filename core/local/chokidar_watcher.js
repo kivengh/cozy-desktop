@@ -306,6 +306,10 @@ module.exports = class LocalWatcher {
     const errors /*: Error[] */ = []
     for (let c of changes) {
       try {
+        if (c.needRefetch) {
+          c.old = await this.pouch.db.get(metadata.id(c.old.path))
+          c.old.childMove = false
+        }
         switch (c.type) {
           // TODO: Inline old LocalWatcher methods
           case 'DirDeletion':
@@ -324,10 +328,6 @@ module.exports = class LocalWatcher {
             await this.onAddFile(c.path, c.stats, c.md5sum)
             break
           case 'FileMove':
-            if (c.needRefetch) {
-              c.old = await this.pouch.db.get(metadata.id(c.old.path))
-              c.old.childMove = false
-            }
             await this.onMoveFile(c.path, c.stats, c.md5sum, c.old, c.overwrite)
             if (c.update) await this.onChange(c.update.path, c.update.stats, c.update.md5sum)
             break

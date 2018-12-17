@@ -341,6 +341,7 @@ function includeChangeEventIntoFileMove (moveChange /*: LocalFileMove */, e /*: 
   log.debug({path: e.path}, 'FileMove + change')
   moveChange.md5sum = moveChange.old.md5sum || moveChange.md5sum
   moveChange.update = _.defaults({
+    md5sum: e.md5sum,
     // In almost all cases, change event has the destination path.
     // But on macOS identical renaming, it has the source path.
     // So we make sure the file change being merged after the move

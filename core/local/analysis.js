@@ -274,6 +274,18 @@ function squashMoves (changes /*: LocalChange[] */) {
         a.wip = a.wip || b.wip
         if (b.path.substr(a.path.length) === b.old.path.substr(a.old.path.length)) {
           changes.splice(j--, 1)
+          if (b.update) {
+            changes.push({
+              sideName: 'local',
+              type: 'FileUpdate',
+              path: b.update.path,
+              stats: b.update.stats,
+              ino: b.ino,
+              md5sum: b.update.md5sum,
+              old: _.defaults({path: b.update.path}, b.old),
+              needRefetch: true
+            })
+          }
         } else {
           // move inside move
           b.old.path = b.old.path.replace(a.old.path, a.path)
